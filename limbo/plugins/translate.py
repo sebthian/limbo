@@ -1,4 +1,4 @@
-“””!translate <DNA sequence> will return the protein sequence for <DNA sequence>"""
+"""!translate <DNA sequence> will return the protein sequence for <DNA sequence>"""
 from bs4 import BeautifulSoup
 import re
 try:
