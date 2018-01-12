@@ -1,4 +1,4 @@
-"""!translate <DNA sequence> will return the protein sequence for <DNA sequence>"""
+"""!translate <equation> will return the google calculator result for <equation>"""
 from bs4 import BeautifulSoup
 import re
 try:
@@ -7,39 +7,20 @@ except ImportError:
     from urllib.request import quote
 import requests
 
-def swap_dna(eq):
+def calc(eq):
+    query = quote(eq)
+    url = "https://encrypted.google.com/search?hl=en&q={0}".format(query)
+    soup = BeautifulSoup(requests.get(url).text, "html5lib")
 
-    #dnastring = quote(eq)
-    dnastring = ‘ATAATA’
-    table = {
-        'ATA':'I', 'ATC':'I', 'ATT':'I', 'ATG':'M',
-        'ACA':'T', 'ACC':'T', 'ACG':'T', 'ACT':'T',
-        'AAC':'N', 'AAT':'N', 'AAA':'K', 'AAG':'K',
-        'AGC':'S', 'AGT':'S', 'AGA':'R', 'AGG':'R',
-        'CTA':'L', 'CTC':'L', 'CTG':'L', 'CTT':'L',
-        'CCA':'P', 'CCC':'P', 'CCG':'P', 'CCT':'P',
-        'CAC':'H', 'CAT':'H', 'CAA':'Q', 'CAG':'Q',
-        'CGA':'R', 'CGC':'R', 'CGG':'R', 'CGT':'R',
-        'GTA':'V', 'GTC':'V', 'GTG':'V', 'GTT':'V',
-        'GCA':'A', 'GCC':'A', 'GCG':'A', 'GCT':'A',
-        'GAC':'D', 'GAT':'D', 'GAA':'E', 'GAG':'E',
-        'GGA':'G', 'GGC':'G', 'GGG':'G', 'GGT':'G',
-        'TCA':'S', 'TCC':'S', 'TCG':'S', 'TCT':'S',
-        'TTC':'F', 'TTT':'F', 'TTA':'L', 'TTG':'L',
-        'TAC':'Y', 'TAT':'Y', 'TAA':'_', 'TAG':'_',
-        'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W',
-        }
-    protein = []
-    end = len(dnastring) - (len(dnastring) %3) - 1
-    for i in range(0,end,3):
-        codon = dnastring[i:i+3]
-        if codon in table:
-            aminoacid = table[codon]
-            protein.append(aminoacid)
-        else:
-            protein.append("N")
-    return "".join(protein)
-    
+    answer = soup.findAll("h2", attrs={"class": "r"})
+    if not answer:
+        answer = soup.findAll("span", attrs={"class": "_m3b"})
+        if not answer:
+            return ":crying_cat_face: Sorry, google doesn't have an answer for you :crying_cat_face:"
+
+    # They seem to use u\xa0 (non-breaking space) in place of a comma
+    answer = answer[0].text.replace(u"\xa0", ",")
+    return answer
 
 def on_message(msg, server):
     text = msg.get("text", "")
@@ -47,7 +28,6 @@ def on_message(msg, server):
     if not match:
         return
 
-    #return swap_dna(match[0].encode("utf8"))
-    return ‘II’
+    return calc(match[0].encode("utf8"))
 
 on_bot_message = on_message
